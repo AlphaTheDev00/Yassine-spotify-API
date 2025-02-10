@@ -18,27 +18,38 @@ router.get("/api/songs/:id", async (req, res) => {
 
     res.status(200).json(song);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 });
 
 // Update a song by ID
-router.put("/api/songs/:id", async (req, res) => {
+router.put("/api/songs/:id", validateToken, async (req, res) => {
   try {
     const { title, duration, audio_url, cover_image } = req.body;
 
-    const updatedSong = await Song.findByIdAndUpdate(
-      req.params.id,
-      { title, duration, audio_url, cover_image },
-      { new: true, runValidators: true }
-    );
-
-    if (!updatedSong) {
-      return res.status(404).json({ message: "Song not found. " });
+    // Find the song first
+    const song = await Song.findById(req.params.id);
+    if (!song) {
+      return res.status(404).json({ message: "Song not found." });
     }
+
+    // Ensure the logged in user is the owner of the song
+    if (song.user_id.toString() !== req.user._id.toString()) {
+      return res
+        .status(403)
+        .json({ message: "Unauthorized: You can only update your own songs." });
+    }
+
+    // Update only the fields provided in the request Body
+    if (title) song.title = title;
+    if (duration) song.duration = duration;
+    if (audio_url) song.audio_url = audio_url;
+    if (cover_image) song.cover_Image = cover_image;
+
+    const updatedSong = await song.save();
     res.status(200).json({ message: "Song updated successfully", updatedSong });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    next(error);
   }
 });
 
