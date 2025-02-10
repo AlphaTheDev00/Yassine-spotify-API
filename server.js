@@ -4,6 +4,7 @@ import mongoSanitize from 'express-mongo-sanitize'
 import 'dotenv/config'
 import logger from './middleware/logger.js'
 import errorHandler from './middleware/errorHandler.js'
+import authController from './controllers/authController.js'
 
 const app = express()
 
@@ -11,6 +12,7 @@ app.use(express.json())
 app.use(mongoSanitize())
 app.use(logger)
 
+app.use('/', authController)
 
 app.use(errorHandler)
 

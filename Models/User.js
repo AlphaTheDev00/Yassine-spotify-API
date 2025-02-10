@@ -3,6 +3,12 @@ import validator from "validator";
 import bcrypt from "bcrypt";
 
 const userSchema = new mongoose.Schema({
+  username: {
+    type: String,
+    required: [true, "Please provide a username."],
+    unique: true
+  },
+
   email: {
     type: String,
     required: [true, "Please provide an email address."],
@@ -11,12 +17,6 @@ const userSchema = new mongoose.Schema({
       message: "Please enter a valid email.",
       validator: (email) => validator.isEmail(email),
     },
-  },
-
-  username: {
-    type: String,
-    required: [true, "Please provide a username."],
-    uniqure: true,
   },
 
   password: {
@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema({
       },
       {
         message:
-          "Password must contain at least 1 lowercase, uppercase, symbol",
+          "Password must contain at least 1 lowercase, uppercase, symbol and number",
         validator: (password) =>
           validator.isStrongPassword(password, {
             minLowercase: 1,
@@ -41,12 +41,27 @@ const userSchema = new mongoose.Schema({
     ],
   },
 
-  bio: {
-    type: String,
-  },
   profileImage: {
     type: String,
   },
+
+  isArtist: {
+    type: Boolean,
+    required: true
+  },
+
+  playlists: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Playlist'
+  }],
+
+  likes: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Song'
+  }]
+
+}, {
+  timestamps: true
 });
 
 // Pre-save hook to hash the password before saving
@@ -60,9 +75,9 @@ userSchema.pre("save", function (next) {
 });
 
 // Method to validate if the password matches the stored hash
-userSchema.method.isPasswordValid = function (plainTextPassword) {
+userSchema.methods.isPasswordValid = function (plainTextPassword) {
   const isValid = bcrypt.compareSync(plainTextPassword, this.password);
-  console.log(`Password is valid: $isValid`);
+  console.log(`Password is valid: ${isValid}`);
   return isValid;
 };
 
