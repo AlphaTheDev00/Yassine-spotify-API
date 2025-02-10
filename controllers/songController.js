@@ -22,12 +22,8 @@ router.post('/api/songs', validateToken ,async (req, res, next) => {
     try {
         req.body.user_id = req.user._id
 
-        const response = await fetch('https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg')
-        const webStream = response.body
-
-        const metadata = await parseWebStream(webStream, 'audio/mpeg')
-        console.log(metadata)
         const song = await Song.create(req.body)
+        
         return res.status(201).json({message: 'created song', song: song})
     } catch (error) {
         next(error)
