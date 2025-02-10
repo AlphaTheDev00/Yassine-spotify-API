@@ -30,4 +30,26 @@ router.post('/api/songs', validateToken ,async (req, res, next) => {
     }
 })
 
+// delete a song
+router.delete('/api/songs/:id', validateToken, async (req, res, next) => {
+    try {
+        const song = await Song.findById(req.params.id)
+
+        if(!song) {
+            return res.status(404).json({ message: 'song not found' })
+        }
+
+        if(!req.user._id.equals(song.user_id)){
+            return res.status(403).json({ message: "nope you cant"})
+        } 
+
+        await Song.findByIdAndDelete(req.params.id)
+
+        return res.sendStatus(204)
+    } catch (error) {
+        next(error)
+    }
+
+})
+
 export default router
