@@ -1,28 +1,22 @@
-import mongoose from "mongoose";
-import { v4 as uuidv4 } from "uuid";
+import mongoose, { Schema } from "mongoose";
 
-const playlistSchema = new mongoose.Schema({
-  id: {
-    type: String,
-    default: uuidv4,
-    unique: true,
+const playlistSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: [true, "Playlist name is required."],
+    },
+    songs: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Song",
+      },
+    ],
   },
-
-  name: {
-    type: String,
-    required: [true, "Playlist name is required."],
-  },
-  user_id: {
-    type: String,
-    ref: "User",
-    required: true,
-  },
-
-  created_at: {
-    type: Date,
-    default: Date.now,
-  },
-});
+  {
+    timestamps: true,
+  }
+);
 
 const Playlist = mongoose.model("Playlist, playlistSchema");
 export default Playlist;
