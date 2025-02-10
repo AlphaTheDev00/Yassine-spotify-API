@@ -60,6 +60,8 @@ const userSchema = new mongoose.Schema({
     ref: 'Song'
   }]
 
+}, {
+  timestamps: true
 });
 
 // Pre-save hook to hash the password before saving
