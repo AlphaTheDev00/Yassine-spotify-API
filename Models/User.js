@@ -64,6 +64,12 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
+userSchema.set('toJSON', {
+  transform(doc, json) {
+    delete json.password
+  }
+})
+
 // Pre-save hook to hash the password before saving
 userSchema.pre("save", function (next) {
   // 'this' refers to the document being saved
