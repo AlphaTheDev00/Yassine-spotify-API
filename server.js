@@ -5,6 +5,7 @@ import 'dotenv/config'
 import logger from './middleware/logger.js'
 import errorHandler from './middleware/errorHandler.js'
 import authController from './controllers/authController.js'
+import songController from './controllers/songController.js'
 
 const app = express()
 
@@ -13,6 +14,7 @@ app.use(mongoSanitize())
 app.use(logger)
 
 app.use('/', authController)
+app.use('/', songController)
 
 app.use(errorHandler)
 
