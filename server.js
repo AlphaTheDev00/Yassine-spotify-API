@@ -6,9 +6,11 @@ import logger from "./middleware/logger.js";
 import errorHandler from "./middleware/errorHandler.js";
 import authController from "./controllers/authController.js";
 import songController from "./controllers/songController.js";
+import cors from 'cors'
 
 const app = express();
 
+app.use(cors())
 app.use(express.json());
 app.use(mongoSanitize());
 app.use(logger);
