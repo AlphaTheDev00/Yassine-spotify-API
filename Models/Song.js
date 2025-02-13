@@ -4,7 +4,7 @@ const songSchema = new mongoose.Schema(
   {
     title: {
       type: String,
-      required: [true, "Song title is required."],
+      required: [true, "Please provide a title."],
     },
     user_id: {
       type: mongoose.Schema.Types.ObjectId,
@@ -22,7 +22,7 @@ const songSchema = new mongoose.Schema(
 
     audio_url: {
       type: String,
-      required: [true, "Audio URL is required."],
+      required: [true, "Please provide an audio file."],
     },
     cover_Image: {
       type: String,

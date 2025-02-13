@@ -10,13 +10,7 @@ import cors from "cors";
 
 const app = express();
 
-const corsOptions = {
-  origin: "http://localhost:5173", // Allow only the frontend to make requests
-  methods: ["GET", "POST", "PUT", "DELETE"], // Specify allowed methods
-  credentials: true, // Enable sending cookies or credentials
-};
-
-app.use(cors(corsOptions));
+app.use(cors());
 app.use(express.json());
 app.use(mongoSanitize());
 app.use(logger);

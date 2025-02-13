@@ -4,7 +4,7 @@ import validateToken from "../middleware/validateToken.js";
 
 const router = express.Router();
 
-// Get a single song
+// Show a single song by ID
 router.get("/api/songs/:id", async (req, res, next) => {
   try {
     const song = await Song.findById(req.params.id)
@@ -21,7 +21,38 @@ router.get("/api/songs/:id", async (req, res, next) => {
   }
 });
 
-// List all songs
+// Update a song by ID
+router.put("/api/songs/:id", validateToken, async (req, res, next) => {
+  try {
+    const { title, duration, audio_url, cover_Image } = req.body;
+
+    // Find the song first
+    const song = await Song.findById(req.params.id);
+    if (!song) {
+      return res.status(404).json({ message: "Song not found." });
+    }
+
+    // Ensure the logged in user is the owner of the song
+    if (song.user_id.toString() !== req.user._id.toString()) {
+      return res
+        .status(403)
+        .json({ message: "Unauthorized: You can only update your own songs." });
+    }
+
+    // Update only the fields provided in the request Body
+    if (title) song.title = title;
+    if (duration) song.duration = duration;
+    if (audio_url) song.audio_url = audio_url;
+    if (cover_Image) song.cover_Image = cover_Image;
+
+    const updatedSong = await song.save();
+    res.status(200).json({ message: "Song updated successfully", updatedSong });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// list all songs
 router.get("/api/songs", async (req, res, next) => {
   try {
     const allSongs = await Song.find().populate("user_id");
