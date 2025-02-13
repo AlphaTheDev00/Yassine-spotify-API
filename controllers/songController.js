@@ -6,7 +6,7 @@ import { parseWebStream } from "music-metadata";
 const router = express.Router();
 
 // Show a single song by ID
-router.get("/api/songs/:id", async (req, res) => {
+router.get("/api/songs/:id", async (req, res, next) => {
   try {
     const song = await Song.findById(req.params.id)
       .populate("user_id", "username email") // Populate user details
@@ -23,9 +23,9 @@ router.get("/api/songs/:id", async (req, res) => {
 });
 
 // Update a song by ID
-router.put("/api/songs/:id", validateToken, async (req, res) => {
+router.put("/api/songs/:id", validateToken, async (req, res, next) => {
   try {
-    const { title, duration, audio_url, cover_image } = req.body;
+    const { title, duration, audio_url, cover_Image } = req.body;
 
     // Find the song first
     const song = await Song.findById(req.params.id);
@@ -44,7 +44,7 @@ router.put("/api/songs/:id", validateToken, async (req, res) => {
     if (title) song.title = title;
     if (duration) song.duration = duration;
     if (audio_url) song.audio_url = audio_url;
-    if (cover_image) song.cover_Image = cover_image;
+    if (cover_Image) song.cover_Image = cover_Image;
 
     const updatedSong = await song.save();
     res.status(200).json({ message: "Song updated successfully", updatedSong });
