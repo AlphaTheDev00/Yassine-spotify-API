@@ -21,6 +21,25 @@ router.get("/api/songs/:id", async (req, res, next) => {
   }
 });
 
+// Add this
+
+router.get("/api/songs/user/:userId", async (req, res, next) => {
+  try {
+    const songs = await Song.find({ user_id: req.params.userId }).populate(
+      "user_id",
+      "username"
+    );
+
+    if (!songs.length) {
+      return res.status(404).json({ message: "No songs found for this user." });
+    }
+
+    res.status(200).json(songs);
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Update a song by ID
 router.put("/api/songs/:id", validateToken, async (req, res, next) => {
   try {
