@@ -11,6 +11,7 @@ export default function generateToken(user){
                 profileImage: user.profileImage,
                 isArtist: user.isArtist,
                 playlists: user.playlists,
+                likedSongs: user.likedSongs,
                 likes: user.likes
             }
         },

@@ -1,91 +1,72 @@
 import mongoose from "mongoose";
-import validator from "validator";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
-    required: [true, "Please provide a username."],
-    unique: true
+    required: [true, "Username is required"],
+    unique: true,
+    trim: true,
+    minlength: [3, "Username must be at least 3 characters long"],
   },
-
   email: {
     type: String,
-    required: [true, "Please provide an email address."],
+    required: [true, "Email is required"],
     unique: true,
-    validate: {
-      message: "Please enter a valid email.",
-      validator: (email) => validator.isEmail(email),
-    },
+    lowercase: true,
+    trim: true,
+    match: [/^\S+@\S+\.\S+$/, "Please enter a valid email address"],
   },
-
   password: {
     type: String,
-    required: [true, "Please provide a password."],
-    validate: [
-      {
-        message: "Password must be at least 8 characters in length.",
-        validator: (password) => password.length >= 8,
-      },
-      {
-        message:
-          "Password must contain at least 1 lowercase, uppercase, symbol and number",
-        validator: (password) =>
-          validator.isStrongPassword(password, {
-            minLowercase: 1,
-            minUppercase: 1,
-            minSymbols: 1,
-            minNumbers: 1,
-          }),
-      },
-    ],
+    required: [true, "Password is required"],
+    minlength: [6, "Password must be at least 6 characters long"],
   },
-
-  profileImage: {
-    type: String,
-  },
-
   isArtist: {
     type: Boolean,
-    required: true
+    default: false,
   },
-
-  playlists: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Playlist'
-  }],
-
-  likes: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Song'
-  }]
-
-}, {
-  timestamps: true
+  likedSongs: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Song",
+    },
+  ],
+  playlists: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Playlist",
+    },
+  ],
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
-userSchema.set('toJSON', {
-  transform(doc, json) {
-    delete json.password
-  }
-})
+// Hash password before saving
+userSchema.pre("save", async function (next) {
+  // Only hash the password if it has been modified (or is new)
+  if (!this.isModified("password")) return next();
 
-// Pre-save hook to hash the password before saving
-userSchema.pre("save", function (next) {
-  // 'this' refers to the document being saved
-  if (this.isModified("password")) {
-    // Hash the password if its modified
-    this.password = bcrypt.hashSync(this.password, bcrypt.genSaltSync());
+  try {
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
+  } catch (error) {
+    next(error);
   }
-  next(); //Proceed to save the document
 });
 
-// Method to validate if the password matches the stored hash
-userSchema.methods.isPasswordValid = function (plainTextPassword) {
-  const isValid = bcrypt.compareSync(plainTextPassword, this.password);
-  console.log(`Password is valid: ${isValid}`);
-  return isValid;
+// Method to compare passwords for login
+userSchema.methods.comparePassword = async function (candidatePassword) {
+  try {
+    return await bcrypt.compare(candidatePassword, this.password);
+  } catch (error) {
+    throw error;
+  }
 };
 
 const User = mongoose.model("User", userSchema);
+
 export default User;
