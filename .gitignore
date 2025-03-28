@@ -39,3 +39,6 @@ build/
 .tmp/
 .temp/
 .qodo
+
+# Local Netlify folder
+.netlify

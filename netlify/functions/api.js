@@ -29,10 +29,14 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // CORS configuration
-const allowedOrigins =
-  process.env.NODE_ENV === "production"
-    ? ["https://your-frontend-domain.com"] // Replace with your actual frontend domain
-    : ["*"];
+const allowedOrigins = [
+  "https://musicfy-clone-client.netlify.app",
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:5174",
+  "http://localhost:4173",
+];
 
 app.use(
   cors({
@@ -44,20 +48,23 @@ app.use(
       }
     },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Accept"],
+    exposedHeaders: ["Content-Range", "X-Content-Range"],
+    maxAge: 600,
   })
 );
 app.use(express.json());
 app.use(mongoSanitize());
 app.use(logger);
 
-app.use("/.netlify/functions/api", authController);
-app.use("/.netlify/functions/api", songController);
-app.use("/.netlify/functions/api/api/liked-songs", likedSongsRoutes);
-app.use("/.netlify/functions/api/api/playlists", playlistsRoutes);
+// Routes
+app.use("/", authController);
+app.use("/", songController);
+app.use("/api/liked-songs", likedSongsRoutes);
+app.use("/api/playlists", playlistsRoutes);
 
-app.get("/.netlify/functions/api/api/test", (req, res) => {
+app.get("/api/test", (req, res) => {
   res.json({ message: "API server is running correctly" });
 });
 
