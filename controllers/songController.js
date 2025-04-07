@@ -21,7 +21,7 @@ router.get("/", validateToken, async (req, res, next) => {
       .populate("artist", "username"); // Populate artist details if needed
 
     console.log(`Found ${songs.length} songs`);
-    res.status(200).json(songs);
+    res.status(200).json({ data: songs });
   } catch (error) {
     console.error("Error fetching songs:", error);
     // Pass error to the error handler middleware
@@ -38,10 +38,10 @@ router.get("/user/:userId", validateToken, async (req, res, next) => {
     );
 
     if (!songs.length) {
-      return res.status(404).json({ message: "No songs found for this user." });
+      return res.status(404).json({ data: [] });
     }
 
-    res.status(200).json(songs);
+    res.status(200).json({ data: songs });
   } catch (error) {
     next(error);
   }
@@ -55,10 +55,10 @@ router.get("/:id", validateToken, async (req, res, next) => {
       .populate("album_id", "title");
 
     if (!song) {
-      return res.status(404).json({ message: "Song not found." });
+      return res.status(404).json({ data: null });
     }
 
-    res.status(200).json(song);
+    res.status(200).json({ data: song });
   } catch (error) {
     next(error);
   }
@@ -72,14 +72,17 @@ router.put("/:id", validateToken, async (req, res, next) => {
     // Find the song first
     const song = await Song.findById(req.params.id);
     if (!song) {
-      return res.status(404).json({ message: "Song not found." });
+      return res.status(404).json({ data: null });
     }
 
     // Ensure the logged in user is the owner of the song
     if (song.user_id.toString() !== req.user._id.toString()) {
       return res
         .status(403)
-        .json({ message: "Unauthorized: You can only update your own songs." });
+        .json({
+          data: null,
+          message: "Unauthorized: You can only update your own songs.",
+        });
     }
 
     // Update only the fields provided in the request Body
@@ -89,7 +92,7 @@ router.put("/:id", validateToken, async (req, res, next) => {
     if (cover_Image) song.cover_Image = cover_Image;
 
     const updatedSong = await song.save();
-    res.status(200).json({ message: "Song updated successfully", updatedSong });
+    res.status(200).json({ data: updatedSong });
   } catch (error) {
     next(error);
   }
@@ -109,7 +112,7 @@ router.post("/", validateToken, async (req, res, next) => {
     });
 
     const savedSong = await newSong.save();
-    res.status(201).json(savedSong);
+    res.status(201).json({ data: savedSong });
   } catch (error) {
     next(error);
   }
@@ -120,18 +123,21 @@ router.delete("/:id", validateToken, async (req, res, next) => {
   try {
     const song = await Song.findById(req.params.id);
     if (!song) {
-      return res.status(404).json({ message: "Song not found." });
+      return res.status(404).json({ data: null });
     }
 
     // Ensure the logged in user is the owner of the song
     if (song.user_id.toString() !== req.user._id.toString()) {
       return res
         .status(403)
-        .json({ message: "Unauthorized: You can only delete your own songs." });
+        .json({
+          data: null,
+          message: "Unauthorized: You can only delete your own songs.",
+        });
     }
 
     await song.deleteOne();
-    res.status(200).json({ message: "Song deleted successfully" });
+    res.status(200).json({ data: null, message: "Song deleted successfully" });
   } catch (error) {
     next(error);
   }
@@ -148,9 +154,9 @@ export const getPlaylists = async (req, res) => {
         model: "Song",
       },
     });
-    res.json(user.playlists);
+    res.json({ data: user.playlists });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ data: null, message: error.message });
   }
 };
 
@@ -164,9 +170,9 @@ export const createPlaylist = async (req, res) => {
       $push: { playlists: playlist._id },
     });
 
-    res.status(201).json(playlist);
+    res.status(201).json({ data: playlist });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ data: null, message: error.message });
   }
 };
 
@@ -176,12 +182,12 @@ export const getSinglePlaylist = async (req, res) => {
     const playlist = await Playlist.findById(id).populate("songs");
 
     if (!playlist) {
-      return res.status(404).json({ message: "Playlist not found" });
+      return res.status(404).json({ data: null });
     }
 
-    res.json(playlist);
+    res.json({ data: playlist });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ data: null, message: error.message });
   }
 };
 
@@ -192,7 +198,7 @@ export const updatePlaylist = async (req, res) => {
     const playlist = await Playlist.findById(id);
 
     if (!playlist) {
-      return res.status(404).json({ message: "Playlist not found" });
+      return res.status(404).json({ data: null });
     }
 
     if (name) {
@@ -208,9 +214,9 @@ export const updatePlaylist = async (req, res) => {
     }
 
     await playlist.save();
-    res.json(playlist);
+    res.json({ data: playlist });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ data: null, message: error.message });
   }
 };
 
@@ -221,16 +227,16 @@ export const deletePlaylist = async (req, res) => {
 
     const playlist = await Playlist.findByIdAndDelete(id);
     if (!playlist) {
-      return res.status(404).json({ message: "Playlist not found" });
+      return res.status(404).json({ data: null });
     }
 
     await User.findByIdAndUpdate(userId, {
       $pull: { playlists: id },
     });
 
-    res.json({ message: "Playlist deleted successfully" });
+    res.json({ data: null, message: "Playlist deleted successfully" });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ data: null, message: error.message });
   }
 };
 
@@ -239,9 +245,9 @@ export const getLikedSongs = async (req, res) => {
   try {
     const userId = req.user._id;
     const user = await User.findById(userId).populate("likedSongs");
-    res.json({ songs: user.likedSongs });
+    res.json({ data: user.likedSongs });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ data: null, message: error.message });
   }
 };
 
@@ -252,15 +258,15 @@ export const addLikedSong = async (req, res) => {
 
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ data: null });
     }
 
     user.likedSongs.addToSet(songId);
     await user.save();
 
-    res.json({ message: "Song added to liked songs" });
+    res.json({ data: null, message: "Song added to liked songs" });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ data: null, message: error.message });
   }
 };
 
@@ -271,15 +277,15 @@ export const removeLikedSong = async (req, res) => {
 
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ data: null });
     }
 
     user.likedSongs.pull(songId);
     await user.save();
 
-    res.json({ message: "Song removed from liked songs" });
+    res.json({ data: null, message: "Song removed from liked songs" });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ data: null, message: error.message });
   }
 };
 

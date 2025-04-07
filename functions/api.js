@@ -103,7 +103,7 @@ const withMongoDBRouter = (router) => {
 };
 
 // Public health check endpoint (no authentication required)
-app.get("/api/health", async (req, res) => {
+app.get(["/health", "/api/health"], async (req, res) => {
   try {
     await connectToMongoDB();
     res.status(200).json({
@@ -124,10 +124,10 @@ app.get("/api/health", async (req, res) => {
 });
 
 // Mount routes with MongoDB connection middleware
-app.use("/api/auth", withMongoDBRouter(authController));
-app.use("/api/songs", withMongoDBRouter(songController));
-app.use("/api", withMongoDB(likedSongsRoutes));
-app.use("/api", withMongoDB(playlistsRoutes));
+app.use(["/auth", "/api/auth"], withMongoDBRouter(authController));
+app.use(["/songs", "/api/songs"], withMongoDBRouter(songController));
+app.use(["/", "/api"], withMongoDB(likedSongsRoutes));
+app.use(["/", "/api"], withMongoDB(playlistsRoutes));
 
 // Error handling middleware
 app.use(errorHandler);

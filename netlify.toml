@@ -1,16 +1,16 @@
 [build]
   command = "npm run build"
-  functions = "functions"
+  functions = "netlify/functions"
   publish = "public"
 
 [[redirects]]
-  from = "/api/*"
+  from = "/*"
   to = "/.netlify/functions/api/:splat"
   status = 200
   force = true
 
 [[headers]]
-  for = "/api/*"
+  for = "/*"
   [headers.values]
     Access-Control-Allow-Origin = "*"
     Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
@@ -33,5 +33,3 @@
 
 [build.environment]
   NODE_VERSION = "18"
-  JWT_SECRET = "spotify_clone_secret_key_for_jwt_authentication"
-  MONGODB_URI = "mongodb+srv://yasthedev:tZZSj2TgRCqxPCmF@spotify-clone.fgllop6.mongodb.net/?retryWrites=true&w=majority&appName=spotify-clone"

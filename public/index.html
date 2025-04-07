@@ -1,9 +1,76 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>API Server</title>
+    <title>Spotify Clone API</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+        line-height: 1.6;
+        color: #333;
+      }
+      h1 {
+        color: #1DB954;
+        border-bottom: 2px solid #1DB954;
+        padding-bottom: 0.5rem;
+      }
+      .status {
+        background-color: #f5f5f5;
+        border-radius: 4px;
+        padding: 1rem;
+        margin: 1rem 0;
+      }
+      .endpoints {
+        margin-top: 2rem;
+      }
+      .endpoint {
+        background-color: #f9f9f9;
+        border-left: 4px solid #1DB954;
+        padding: 0.5rem 1rem;
+        margin-bottom: 1rem;
+      }
+      code {
+        background-color: #eee;
+        padding: 0.2rem 0.4rem;
+        border-radius: 3px;
+        font-family: monospace;
+      }
+    </style>
   </head>
   <body>
-    <h1>API Server is running</h1>
+    <h1>Spotify Clone API</h1>
+    <div class="status">
+      <h2>API Status</h2>
+      <p>The API server is running. To check the health of the API, visit <a href="/.netlify/functions/api/health">/.netlify/functions/api/health</a></p>
+    </div>
+    
+    <div class="endpoints">
+      <h2>Available Endpoints</h2>
+      
+      <div class="endpoint">
+        <h3>Authentication</h3>
+        <p><code>POST /.netlify/functions/api/auth/login</code> - User login</p>
+        <p><code>POST /.netlify/functions/api/auth/register</code> - User registration</p>
+      </div>
+      
+      <div class="endpoint">
+        <h3>Songs</h3>
+        <p><code>GET /.netlify/functions/api/songs</code> - Get all songs</p>
+      </div>
+      
+      <div class="endpoint">
+        <h3>Testing</h3>
+        <p><code>GET /.netlify/functions/api/test</code> - Test endpoint</p>
+        <p><code>GET /.netlify/functions/api/health</code> - Health check</p>
+      </div>
+    </div>
+    
+    <footer>
+      <p>For more information, visit the <a href="https://github.com/AlphaTheDev00/Yassine-spotify-API" target="_blank">GitHub repository</a>.</p>
+    </footer>
   </body>
 </html>

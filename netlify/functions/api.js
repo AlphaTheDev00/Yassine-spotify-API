@@ -1,18 +1,19 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-const serverless = require("serverless-http");
-require("dotenv").config();
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
+import serverless from "serverless-http";
+import dotenv from "dotenv";
+dotenv.config();
 
 // Import Song model
-const Song = require("../../Models/Song");
+import Song from "../../Models/Song.js";
 
 const app = express();
 
 // CORS configuration
 const corsOptions = {
   origin: [
-    "https://musicfy-clone.netlify.app",
+    "https://musicfy-clone-client.netlify.app",
     "http://localhost:5173",
     "http://localhost:3000",
   ],
@@ -31,10 +32,21 @@ app.use((req, res, next) => {
   next();
 });
 
+// Health check endpoint
+app.get("/.netlify/functions/api/health", (req, res) => {
+  console.log("Health check endpoint hit");
+  res.json({ 
+    status: "healthy",
+    environment: process.env.NODE_ENV || "development",
+    timestamp: new Date().toISOString(),
+    mongoConnection: mongoose.connection.readyState === 1 ? "connected" : "disconnected"
+  });
+});
+
 // Test endpoint
 app.get("/test", (req, res) => {
   console.log("Test endpoint hit");
-  res.json({ message: "API is working correctly" });
+  res.json({ data: { message: "API is working correctly" } });
 });
 
 // Songs endpoint
@@ -47,16 +59,10 @@ app.get("/songs", async (req, res) => {
       .sort({ createdAt: -1 });
 
     console.log(`Found ${songs.length} songs`);
-    res.json({
-      message: "Songs retrieved successfully",
-      songs: songs,
-    });
+    res.json({ data: songs });
   } catch (error) {
     console.error("Error fetching songs:", error);
-    res.status(500).json({
-      error: "Failed to fetch songs",
-      details: error.message,
-    });
+    res.status(500).json({ data: null, message: error.message });
   }
 });
 
@@ -67,18 +73,20 @@ app.post("/auth/register", async (req, res) => {
     // Here you'd normally create a user in the database
     // For testing purposes, we'll just return a success response
     res.status(201).json({
-      message: "User registered successfully",
-      user: {
-        username: req.body.username,
-        email: req.body.email,
-        // Don't send back the password!
+      data: {
+        user: {
+          username: req.body.username,
+          email: req.body.email,
+          // Don't send back the password!
+        },
       },
+      message: "User registered successfully",
     });
   } catch (error) {
     console.error("Registration error:", error);
     res.status(500).json({
-      error: "Failed to register user",
-      details: error.message,
+      data: null,
+      message: error.message,
     });
   }
 });
@@ -89,18 +97,20 @@ app.post("/auth/login", async (req, res) => {
     // Here you'd normally validate credentials against the database
     // For testing purposes, we'll just return a success response with a test token
     res.json({
-      message: "Login successful",
-      user: {
-        username: req.body.email.split("@")[0],
-        email: req.body.email,
+      data: {
+        user: {
+          username: req.body.email.split("@")[0],
+          email: req.body.email,
+        },
+        token: "test_token_for_development",
       },
-      token: "test_token_for_development",
+      message: "Login successful",
     });
   } catch (error) {
     console.error("Login error:", error);
     res.status(401).json({
-      error: "Invalid credentials",
-      details: error.message,
+      data: null,
+      message: "Invalid credentials",
     });
   }
 });
@@ -171,7 +181,10 @@ const handler = async (event, context) => {
             "Access-Control-Allow-Credentials": "true",
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ error: "Database connection failed" }),
+          body: JSON.stringify({
+            data: null,
+            message: "Database connection failed",
+          }),
         };
       }
       console.log(`Retrying MongoDB connection... (${retries} attempts left)`);
@@ -223,9 +236,12 @@ const handler = async (event, context) => {
         "Access-Control-Allow-Credentials": "true",
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ error: error.message }),
+      body: JSON.stringify({
+        data: null,
+        message: "Internal server error",
+      }),
     };
   }
 };
 
-module.exports = { handler };
+export { handler };
