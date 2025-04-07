@@ -389,6 +389,169 @@ app.get("/.netlify/functions/api/seed", async (req, res) => {
   }
 });
 
+// Playlist endpoints
+app.get("/.netlify/functions/api/playlists", async (req, res) => {
+  console.log("Get playlists endpoint hit");
+  try {
+    // For development purposes, return mock playlists
+    res.json({
+      success: true,
+      data: [
+        {
+          id: "playlist_1",
+          name: "My Favorite Songs",
+          userId: "user123",
+          username: "testuser",
+          createdAt: new Date().toISOString(),
+          songs: [
+            {
+              _id: "mock-song-1",
+              title: "Playlist Song 1",
+              artist: "Artist 1",
+              album: "Album 1",
+              coverImage: "https://picsum.photos/seed/song1/300/300",
+              audioUrl: "https://example.com/song1.mp3",
+            },
+            {
+              _id: "mock-song-2",
+              title: "Playlist Song 2",
+              artist: "Artist 2",
+              album: "Album 2",
+              coverImage: "https://picsum.photos/seed/song2/300/300",
+              audioUrl: "https://example.com/song2.mp3",
+            }
+          ]
+        },
+        {
+          id: "playlist_2",
+          name: "Workout Mix",
+          userId: "user123",
+          username: "testuser",
+          createdAt: new Date().toISOString(),
+          songs: []
+        }
+      ],
+      message: "Playlists retrieved successfully"
+    });
+  } catch (error) {
+    console.error("Error fetching playlists:", error);
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: error.message
+    });
+  }
+});
+
+app.get("/.netlify/functions/api/playlists/:id", async (req, res) => {
+  console.log("Get playlist by ID endpoint hit with ID:", req.params.id);
+  try {
+    // For development purposes, return a mock playlist
+    res.json({
+      success: true,
+      data: {
+        id: req.params.id,
+        name: "My Playlist",
+        userId: "user123",
+        username: "testuser",
+        createdAt: new Date().toISOString(),
+        songs: [
+          {
+            _id: "mock-song-1",
+            title: "Playlist Song 1",
+            artist: "Artist 1",
+            album: "Album 1",
+            coverImage: "https://picsum.photos/seed/song1/300/300",
+            audioUrl: "https://example.com/song1.mp3",
+          },
+          {
+            _id: "mock-song-2",
+            title: "Playlist Song 2",
+            artist: "Artist 2",
+            album: "Album 2",
+            coverImage: "https://picsum.photos/seed/song2/300/300",
+            audioUrl: "https://example.com/song2.mp3",
+          }
+        ]
+      },
+      message: "Playlist retrieved successfully"
+    });
+  } catch (error) {
+    console.error("Error fetching playlist:", error);
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: error.message
+    });
+  }
+});
+
+app.post("/.netlify/functions/api/playlists", async (req, res) => {
+  console.log("Create playlist endpoint hit with data:", req.body);
+  try {
+    // For development purposes, return success response
+    res.json({
+      success: true,
+      data: {
+        id: "playlist_" + Date.now(),
+        name: req.body.name,
+        userId: req.body.userId || "user123",
+        username: req.body.username || "testuser",
+        createdAt: new Date().toISOString(),
+        songs: []
+      },
+      message: "Playlist created successfully"
+    });
+  } catch (error) {
+    console.error("Error creating playlist:", error);
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: error.message
+    });
+  }
+});
+
+app.post("/.netlify/functions/api/playlists/:id/songs", async (req, res) => {
+  console.log("Add song to playlist endpoint hit with playlist ID:", req.params.id, "and song ID:", req.body.songId);
+  try {
+    // For development purposes, return success response
+    res.json({
+      success: true,
+      data: {
+        message: "Song added to playlist successfully"
+      }
+    });
+  } catch (error) {
+    console.error("Error adding song to playlist:", error);
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: error.message
+    });
+  }
+});
+
+app.delete("/.netlify/functions/api/playlists/:id/songs/:songId", async (req, res) => {
+  console.log("Remove song from playlist endpoint hit with playlist ID:", req.params.id, "and song ID:", req.params.songId);
+  try {
+    // For development purposes, return success response
+    res.json({
+      success: true,
+      data: {
+        message: "Song removed from playlist successfully"
+      }
+    });
+  } catch (error) {
+    console.error("Error removing song from playlist:", error);
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: error.message
+    });
+  }
+});
+
 // Liked songs endpoints
 app.get("/.netlify/functions/api/users/liked-songs", async (req, res) => {
   console.log("Get liked songs endpoint hit");
