@@ -539,13 +539,13 @@ app.post("/auth/register", async (req, res) => {
     // Here you'd normally create a user in the database
     // For testing purposes, we'll just return a success response with a token
     res.status(201).json({
+      token: "test_token_for_development",
       data: {
         user: {
           username: req.body.username,
           email: req.body.email,
           // Don't send back the password!
-        },
-        token: "test_token_for_development",
+        }
       },
       message: "User registered successfully",
     });
@@ -588,13 +588,13 @@ app.post("/.netlify/functions/api/auth/register", async (req, res) => {
     // Here you'd normally create a user in the database
     // For testing purposes, we'll just return a success response with a token
     res.status(201).json({
+      token: "test_token_for_development",
       data: {
         user: {
           username: req.body.username,
           email: req.body.email,
           // Don't send back the password!
-        },
-        token: "test_token_for_development",
+        }
       },
       message: "User registered successfully",
     });
