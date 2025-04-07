@@ -81,13 +81,13 @@ app.get("/.netlify/functions/api/songs", async (req, res) => {
     // Check if MongoDB is connected
     if (mongoose.connection.readyState !== 1) {
       console.log("MongoDB not connected, returning fallback data");
-      // Create 30 mock songs for pagination demonstration
+      // Create 40 mock songs for pagination demonstration
       const mockSongs = [];
-      const artists = ["The Weeknd", "Dua Lipa", "Ed Sheeran", "Billie Eilish", "Post Malone"];
-      const albums = ["After Hours", "Future Nostalgia", "Divide", "Happier Than Ever", "Hollywood's Bleeding"];
-      const genres = ["Pop", "R&B", "Rock", "Hip Hop", "Electronic"];
+      const artists = ["The Weeknd", "Dua Lipa", "Ed Sheeran", "Billie Eilish", "Post Malone", "Taylor Swift", "Drake", "Ariana Grande"];
+      const albums = ["After Hours", "Future Nostalgia", "Divide", "Happier Than Ever", "Hollywood's Bleeding", "Lover", "Certified Lover Boy", "Positions"];
+      const genres = ["Pop", "R&B", "Rock", "Hip Hop", "Electronic", "Country", "Jazz", "Alternative"];
       
-      for (let i = 1; i <= 30; i++) {
+      for (let i = 1; i <= 40; i++) {
         const artistIndex = i % artists.length;
         const albumIndex = i % albums.length;
         const genreIndex = i % genres.length;
