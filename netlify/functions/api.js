@@ -81,40 +81,36 @@ app.get("/.netlify/functions/api/songs", async (req, res) => {
     // Check if MongoDB is connected
     if (mongoose.connection.readyState !== 1) {
       console.log("MongoDB not connected, returning fallback data");
-      return res.json({ 
-        data: [
-          {
-            _id: "fallback-song-1",
-            title: "Fallback Song 1",
-            artist: "API Demo",
-            album: "Fallback Album",
-            duration: 180,
-            coverImage: "https://via.placeholder.com/300",
-            audioUrl: "https://example.com/song1.mp3",
-            user_id: {
-              _id: "demo-user-1",
-              username: "demo_user",
-              profileImage: "https://via.placeholder.com/150"
-            },
-            createdAt: new Date().toISOString()
+      // Create 30 mock songs for pagination demonstration
+      const mockSongs = [];
+      const artists = ["The Weeknd", "Dua Lipa", "Ed Sheeran", "Billie Eilish", "Post Malone"];
+      const albums = ["After Hours", "Future Nostalgia", "Divide", "Happier Than Ever", "Hollywood's Bleeding"];
+      const genres = ["Pop", "R&B", "Rock", "Hip Hop", "Electronic"];
+      
+      for (let i = 1; i <= 30; i++) {
+        const artistIndex = i % artists.length;
+        const albumIndex = i % albums.length;
+        const genreIndex = i % genres.length;
+        
+        mockSongs.push({
+          _id: `mock-song-${i}`,
+          title: `Song Title ${i}`,
+          artist: artists[artistIndex],
+          album: albums[albumIndex],
+          genre: genres[genreIndex],
+          duration: 180 + (i * 10),
+          coverImage: `https://picsum.photos/seed/song${i}/300/300`,
+          audio_url: "https://cdn.freesound.org/previews/635/635250_11861866-lq.mp3",
+          user_id: {
+            _id: `user-${Math.ceil(i/5)}`,
+            username: `artist_${Math.ceil(i/5)}`,
+            profileImage: `https://picsum.photos/seed/user${Math.ceil(i/5)}/150/150`
           },
-          {
-            _id: "fallback-song-2",
-            title: "Fallback Song 2",
-            artist: "API Demo",
-            album: "Fallback Album",
-            duration: 210,
-            coverImage: "https://via.placeholder.com/300",
-            audioUrl: "https://example.com/song2.mp3",
-            user_id: {
-              _id: "demo-user-1",
-              username: "demo_user",
-              profileImage: "https://via.placeholder.com/150"
-            },
-            createdAt: new Date().toISOString()
-          }
-        ]
-      });
+          createdAt: new Date(Date.now() - (i * 86400000)).toISOString() // Each song created a day apart
+        });
+      }
+      
+      return res.json({ data: mockSongs });
     }
 
     // Get all songs from MongoDB
