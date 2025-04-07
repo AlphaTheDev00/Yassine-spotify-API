@@ -77,6 +77,36 @@ app.get("/songs", async (req, res) => {
 app.get("/.netlify/functions/api/songs", async (req, res) => {
   console.log("Songs endpoint hit with Netlify path");
   try {
+    // Check if MongoDB is connected
+    if (mongoose.connection.readyState !== 1) {
+      console.log("MongoDB not connected, returning fallback data");
+      return res.json({ 
+        data: [
+          {
+            _id: "fallback-song-1",
+            title: "Fallback Song 1",
+            artist: "API Demo",
+            duration: 180,
+            user_id: {
+              username: "demo_user",
+              profileImage: "https://via.placeholder.com/150"
+            }
+          },
+          {
+            _id: "fallback-song-2",
+            title: "Fallback Song 2",
+            artist: "API Demo",
+            duration: 210,
+            user_id: {
+              username: "demo_user",
+              profileImage: "https://via.placeholder.com/150"
+            }
+          }
+        ],
+        message: "Fallback data: MongoDB connection not available"
+      });
+    }
+
     // Get all songs from MongoDB
     const songs = await Song.find()
       .populate("user_id", "username profileImage")
@@ -85,8 +115,15 @@ app.get("/.netlify/functions/api/songs", async (req, res) => {
     console.log(`Found ${songs.length} songs`);
     res.json({ data: songs });
   } catch (error) {
-    console.error("Error fetching songs:", error);
-    res.status(500).json({ data: null, message: error.message });
+    console.error("Error fetching songs:", error.message);
+    res.status(500).json({ 
+      data: null, 
+      message: `Error fetching songs: ${error.message}`,
+      env: {
+        mongoUri: process.env.MONGODB_URI ? "Set" : "Not set",
+        nodeEnv: process.env.NODE_ENV || "Not set"
+      }
+    });
   }
 });
 
@@ -205,6 +242,13 @@ const connectDB = async () => {
 
   isConnecting = true;
   try {
+    console.log("Attempting to connect to MongoDB with URI:", 
+      process.env.MONGODB_URI ? "URI exists" : "URI is missing");
+    
+    if (!process.env.MONGODB_URI) {
+      throw new Error("MONGODB_URI environment variable is not set");
+    }
+    
     const db = await mongoose.connect(process.env.MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
@@ -216,7 +260,7 @@ const connectDB = async () => {
     isConnecting = false;
     return db;
   } catch (error) {
-    console.error("MongoDB connection error:", error);
+    console.error("MongoDB connection error:", error.message);
     isConnecting = false;
     throw error;
   }
