@@ -564,12 +564,13 @@ app.post("/auth/login", async (req, res) => {
     // Here you'd normally validate credentials against the database
     // For testing purposes, we'll just return a success response with a test token
     res.json({
+      token: "test_token_for_development",
       data: {
         user: {
+          id: "user123",
           username: req.body.email.split("@")[0],
           email: req.body.email,
-        },
-        token: "test_token_for_development",
+        }
       },
       message: "Login successful",
     });
@@ -613,12 +614,13 @@ app.post("/.netlify/functions/api/auth/login", async (req, res) => {
     // Here you'd normally validate credentials against the database
     // For testing purposes, we'll just return a success response with a test token
     res.json({
+      token: "test_token_for_development",
       data: {
         user: {
+          id: "user123",
           username: req.body.email.split("@")[0],
           email: req.body.email,
-        },
-        token: "test_token_for_development",
+        }
       },
       message: "Login successful",
     });
