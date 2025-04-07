@@ -5,8 +5,9 @@ import serverless from "serverless-http";
 import dotenv from "dotenv";
 dotenv.config();
 
-// Import Song model
+// Import models
 import Song from "../../Models/Song.js";
+import User from "../../Models/User.js";
 
 const app = express();
 
@@ -242,6 +243,148 @@ app.get("/.netlify/functions/api/songs/:id", async (req, res) => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       }
+    });
+  }
+});
+
+// Seed data endpoint with Netlify path
+app.get("/.netlify/functions/api/seed", async (req, res) => {
+  console.log("Seed endpoint hit");
+  try {
+    // Check if MongoDB is connected
+    if (mongoose.connection.readyState !== 1) {
+      console.log("MongoDB not connected, cannot seed data");
+      return res.status(500).json({ 
+        success: false,
+        message: "MongoDB not connected, cannot seed data"
+      });
+    }
+
+    // Define sample songs
+    const sampleSongs = [
+      {
+        title: "Bohemian Rhapsody",
+        artist: "Queen",
+        album: "A Night at the Opera",
+        duration: 354,
+        coverImage: "https://upload.wikimedia.org/wikipedia/en/4/4d/Queen_A_Night_At_The_Opera.png",
+        audioUrl: "https://example.com/bohemian-rhapsody.mp3",
+        lyrics: "Is this the real life? Is this just fantasy?\nCaught in a landslide, no escape from reality\nOpen your eyes, look up to the skies and see\nI'm just a poor boy, I need no sympathy",
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        title: "Billie Jean",
+        artist: "Michael Jackson",
+        album: "Thriller",
+        duration: 294,
+        coverImage: "https://upload.wikimedia.org/wikipedia/en/5/55/Michael_Jackson_-_Thriller.png",
+        audioUrl: "https://example.com/billie-jean.mp3",
+        lyrics: "She was more like a beauty queen from a movie scene\nI said don't mind, but what do you mean, I am the one\nWho will dance on the floor in the round",
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        title: "Hotel California",
+        artist: "Eagles",
+        album: "Hotel California",
+        duration: 390,
+        coverImage: "https://upload.wikimedia.org/wikipedia/en/4/49/Hotelcalifornia.jpg",
+        audioUrl: "https://example.com/hotel-california.mp3",
+        lyrics: "On a dark desert highway, cool wind in my hair\nWarm smell of colitas, rising up through the air\nUp ahead in the distance, I saw a shimmering light",
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        title: "Imagine",
+        artist: "John Lennon",
+        album: "Imagine",
+        duration: 183,
+        coverImage: "https://upload.wikimedia.org/wikipedia/en/6/69/ImagineCover.jpg",
+        audioUrl: "https://example.com/imagine.mp3",
+        lyrics: "Imagine there's no heaven\nIt's easy if you try\nNo hell below us\nAbove us only sky\nImagine all the people\nLiving for today",
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        title: "Sweet Child O' Mine",
+        artist: "Guns N' Roses",
+        album: "Appetite for Destruction",
+        duration: 356,
+        coverImage: "https://upload.wikimedia.org/wikipedia/en/6/60/GunsnRosesAppetiteforDestructionalbumcover.jpg",
+        audioUrl: "https://example.com/sweet-child-o-mine.mp3",
+        lyrics: "She's got a smile that it seems to me\nReminds me of childhood memories\nWhere everything was as fresh as the bright blue sky",
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ];
+
+    // Check if there are already songs in the database
+    const existingSongs = await Song.find();
+    if (existingSongs.length > 0) {
+      console.log(`Database already has ${existingSongs.length} songs, skipping seed`);
+      return res.json({ 
+        success: true,
+        message: `Database already has ${existingSongs.length} songs, skipping seed`,
+        existingSongs: existingSongs.map(song => ({
+          _id: song._id,
+          title: song.title,
+          artist: song.artist
+        }))
+      });
+    }
+
+    // Create a demo user for the songs
+    const demoUser = {
+      username: "demo_user",
+      email: "demo@example.com",
+      password: "password123", // In a real app, this would be hashed
+      profileImage: "https://via.placeholder.com/150",
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    // Check if User model is available
+    let user;
+    if (mongoose.models.User) {
+      // Check if demo user already exists
+      user = await mongoose.models.User.findOne({ email: demoUser.email });
+      if (!user) {
+        // Create demo user
+        user = await mongoose.models.User.create(demoUser);
+        console.log("Created demo user:", user.username);
+      } else {
+        console.log("Using existing demo user:", user.username);
+      }
+    } else {
+      console.log("User model not available, using fallback user ID");
+      user = { _id: "demo-user-id" };
+    }
+
+    // Add user_id to each song
+    const songsWithUser = sampleSongs.map(song => ({
+      ...song,
+      user_id: user._id
+    }));
+
+    // Insert songs into the database
+    const insertedSongs = await Song.insertMany(songsWithUser);
+    console.log(`Successfully seeded ${insertedSongs.length} songs`);
+
+    res.json({ 
+      success: true,
+      message: `Successfully seeded ${insertedSongs.length} songs`,
+      songs: insertedSongs.map(song => ({
+        _id: song._id,
+        title: song.title,
+        artist: song.artist
+      }))
+    });
+  } catch (error) {
+    console.error("Error seeding data:", error.message);
+    res.status(500).json({ 
+      success: false,
+      message: `Error seeding data: ${error.message}`
     });
   }
 });
