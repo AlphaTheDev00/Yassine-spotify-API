@@ -58,19 +58,10 @@ const songSchema = new mongoose.Schema({
 });
 
 // Pre-save hook to ensure consistent field usage
-songSchema.pre('save', function(next) {
+songSchema.pre("save", function (next) {
   // Copy values between duplicate fields to maintain consistency
   if (this.artist && !this.user_id) this.user_id = this.artist;
   if (this.user_id && !this.artist) this.artist = this.user_id;
-  
-  // Handle audio URL consistency
-  if (this.audioUrl && !this.audio_url) this.audio_url = this.audioUrl;
-  if (this.audio_url && !this.audioUrl) this.audioUrl = this.audio_url;
-  
-  // Handle image URL consistency
-  if (this.imageUrl && !this.cover_Image) this.cover_Image = this.imageUrl;
-  if (this.cover_Image && !this.imageUrl) this.imageUrl = this.cover_Image;
-  
   next();
 });
 

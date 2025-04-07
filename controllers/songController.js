@@ -7,8 +7,30 @@ import mongoose from "mongoose";
 
 const router = express.Router();
 
+// list all songs
+router.get("/", validateToken, async (req, res, next) => {
+  try {
+    console.log("GET /songs endpoint hit");
+
+    // Log connection state
+    console.log("MongoDB Connection State:", mongoose.connection.readyState);
+    // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
+
+    const songs = await Song.find()
+      .sort({ createdAt: -1 })
+      .populate("artist", "username"); // Populate artist details if needed
+
+    console.log(`Found ${songs.length} songs`);
+    res.status(200).json(songs);
+  } catch (error) {
+    console.error("Error fetching songs:", error);
+    // Pass error to the error handler middleware
+    next(error);
+  }
+});
+
 // Get songs by user ID
-router.get("/api/songs/user/:userId", async (req, res, next) => {
+router.get("/user/:userId", validateToken, async (req, res, next) => {
   try {
     const songs = await Song.find({ user_id: req.params.userId }).populate(
       "user_id",
@@ -26,7 +48,7 @@ router.get("/api/songs/user/:userId", async (req, res, next) => {
 });
 
 // Show a single song by ID
-router.get("/api/songs/:id", async (req, res, next) => {
+router.get("/:id", validateToken, async (req, res, next) => {
   try {
     const song = await Song.findById(req.params.id)
       .populate("user_id", "username email")
@@ -43,7 +65,7 @@ router.get("/api/songs/:id", async (req, res, next) => {
 });
 
 // Update a song by ID
-router.put("/api/songs/:id", validateToken, async (req, res, next) => {
+router.put("/:id", validateToken, async (req, res, next) => {
   try {
     const { title, duration, audio_url, cover_Image } = req.body;
 
@@ -73,59 +95,43 @@ router.put("/api/songs/:id", validateToken, async (req, res, next) => {
   }
 });
 
-// list all songs
-router.get("/api/songs", async (req, res, next) => {
-  try {
-    console.log("GET /api/songs endpoint hit");
-
-    // Log connection state
-    console.log("MongoDB Connection State:", mongoose.connection.readyState);
-    // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
-
-    const songs = await Song.find()
-      .sort({ createdAt: -1 })
-      .populate("artist", "username"); // Populate artist details if needed
-
-    console.log(`Found ${songs.length} songs`);
-    res.status(200).json(songs);
-  } catch (error) {
-    console.error("Error fetching songs:", error);
-    // Pass error to the error handler middleware
-    next(error);
-  }
-});
-
 // Create a new song
-router.post("/api/songs", validateToken, async (req, res, next) => {
+router.post("/", validateToken, async (req, res, next) => {
   try {
-    const songData = {
-      ...req.body,
-      user_id: req.user._id,
-    };
+    const { title, duration, audio_url, cover_Image } = req.body;
 
-    const song = await Song.create(songData);
-    res.status(201).json(song);
+    const newSong = new Song({
+      title,
+      duration,
+      audio_url,
+      cover_Image,
+      user_id: req.user._id, // Set the user_id from the authenticated user
+    });
+
+    const savedSong = await newSong.save();
+    res.status(201).json(savedSong);
   } catch (error) {
     next(error);
   }
 });
 
-// Delete a song
-router.delete("/api/songs/:id", validateToken, async (req, res, next) => {
+// Delete a song by ID
+router.delete("/:id", validateToken, async (req, res, next) => {
   try {
     const song = await Song.findById(req.params.id);
     if (!song) {
-      return res.status(404).json({ message: "Song not found" });
+      return res.status(404).json({ message: "Song not found." });
     }
 
-    if (!req.user._id.equals(song.user_id)) {
+    // Ensure the logged in user is the owner of the song
+    if (song.user_id.toString() !== req.user._id.toString()) {
       return res
         .status(403)
         .json({ message: "Unauthorized: You can only delete your own songs." });
     }
 
-    await Song.findByIdAndDelete(req.params.id);
-    return res.sendStatus(204);
+    await song.deleteOne();
+    res.status(200).json({ message: "Song deleted successfully" });
   } catch (error) {
     next(error);
   }
@@ -277,14 +283,15 @@ export const removeLikedSong = async (req, res) => {
   }
 };
 
-router.get("/api/playlists", validateToken, getPlaylists);
-router.post("/api/playlists", validateToken, createPlaylist);
-router.get("/api/playlists/:id", validateToken, getSinglePlaylist);
-router.put("/api/playlists/:id", validateToken, updatePlaylist);
-router.delete("/api/playlists/:id", validateToken, deletePlaylist);
+router.get("/playlists", validateToken, getPlaylists);
+router.post("/playlists", validateToken, createPlaylist);
+router.get("/playlists/:id", validateToken, getSinglePlaylist);
+router.put("/playlists/:id", validateToken, updatePlaylist);
+router.delete("/playlists/:id", validateToken, deletePlaylist);
 
-router.get("/api/users/liked-songs", validateToken, getLikedSongs);
-router.post("/api/users/liked-songs", validateToken, addLikedSong);
-router.delete("/api/users/liked-songs/:id", validateToken, removeLikedSong);
+router.get("/users/liked-songs", validateToken, getLikedSongs);
+router.post("/users/liked-songs", validateToken, addLikedSong);
+router.delete("/users/liked-songs/:id", validateToken, removeLikedSong);
 
+// Export the router
 export default router;

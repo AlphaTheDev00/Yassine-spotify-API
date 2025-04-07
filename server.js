@@ -6,67 +6,31 @@ import logger from "./middleware/logger.js";
 import errorHandler from "./middleware/errorHandler.js";
 import authController from "./controllers/authController.js";
 import songController from "./controllers/songController.js";
-import likedSongsRoutes from "./routes/likedSongsRoutes.js";
-import playlistsRoutes from "./routes/playlistsRoutes.js";
 import cors from "cors";
-import rateLimit from "express-rate-limit";
-import helmet from "helmet";
 
 const app = express();
 
-// Security headers
-app.use(helmet());
+// Configure CORS
+const corsOptions = {
+  origin:
+    process.env.NODE_ENV === "production"
+      ? [
+          "https://musicfy-clone-client.netlify.app",
+          "https://67ec4cffad65018cea18c756--musicfy-clone-client.netlify.app",
+        ]
+      : ["http://localhost:3000", "http://localhost:5173"],
+  credentials: true,
+  optionsSuccessStatus: 200,
+};
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: process.env.RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000, // 15 minutes
-  max: process.env.RATE_LIMIT_MAX_REQUESTS || 100, // Limit each IP to 100 requests per windowMs
-  message: "Too many requests from this IP, please try again later.",
-});
-
-// Apply rate limiting to all routes
-app.use(limiter);
-
-// CORS configuration
-const allowedOrigins =
-  process.env.NODE_ENV === "production"
-    ? ["https://your-frontend-domain.com"] // Replace with your actual frontend domain
-    : [
-        "http://localhost:5173",
-        "http://localhost:5174",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:5174",
-        "http://127.0.0.1:46179",
-        "http://localhost:4173",
-      ];
-
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
-
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(mongoSanitize());
 app.use(logger);
 
-app.use("/", authController);
-app.use("/", songController);
-app.use("/api/liked-songs", likedSongsRoutes);
-app.use("/api/playlists", playlistsRoutes);
-
-app.get("/api/test", (req, res) => {
-  res.json({ message: "API server is running correctly" });
-});
+// Mount controllers with proper paths
+app.use("/auth", authController);
+app.use("/api/songs", songController);
 
 app.use(errorHandler);
 
@@ -74,7 +38,7 @@ const PORT = process.env.PORT || 3000;
 
 // Handle uncaught exceptions
 process.on("uncaughtException", (err) => {
-  console.error("UNCAUGHT EXCEPTION! Shutting down...");
+  console.error("UNCAUGHT EXCEPTION! 💥 Shutting down...");
   console.error(err.name, err.message, err.stack);
   process.exit(1);
 });
@@ -90,7 +54,7 @@ mongoose
 
     // Handle unhandled promise rejections
     process.on("unhandledRejection", (err) => {
-      console.error("UNHANDLED REJECTION! Shutting down...");
+      console.error("UNHANDLED REJECTION! 💥 Shutting down...");
       console.error(err.name, err.message);
       server.close(() => {
         process.exit(1);

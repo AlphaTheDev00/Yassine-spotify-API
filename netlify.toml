@@ -1,20 +1,37 @@
 [build]
-  functions = "netlify/functions"
   command = "npm run build"
+  functions = "functions"
+  publish = "public"
 
-[functions]
-  external_node_modules = ["express", "mongoose", "bcryptjs", "jsonwebtoken"]
-  node_bundler = "esbuild"
-
-# Catch-all redirect for API calls
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/api/:splat"
   status = 200
   force = true
 
-[[redirects]]
-  from = "/*"
-  to = "/.netlify/functions/api/:splat"
-  status = 200
-  force = true
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization, X-Requested-With, Accept, Origin"
+    Access-Control-Allow-Credentials = "true"
+    Content-Security-Policy = """
+      default-src 'self' *;
+      font-src 'self' data: https: *;
+      img-src 'self' data: https: *;
+      media-src 'self' data: https: *;
+      connect-src 'self' *;
+      style-src 'self' 'unsafe-inline' https:;
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' https:;
+      worker-src 'self' blob:;
+    """
+
+[functions]
+  external_node_modules = ["express", "mongoose", "jsonwebtoken", "bcryptjs", "cors"]
+  node_bundler = "esbuild"
+
+[build.environment]
+  NODE_VERSION = "18"
+  JWT_SECRET = "spotify_clone_secret_key_for_jwt_authentication"
+  MONGODB_URI = "mongodb+srv://yasthedev:tZZSj2TgRCqxPCmF@spotify-clone.fgllop6.mongodb.net/?retryWrites=true&w=majority&appName=spotify-clone"

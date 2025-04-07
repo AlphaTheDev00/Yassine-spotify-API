@@ -6,50 +6,18 @@ import jwt from "jsonwebtoken";
 const router = express.Router();
 
 // Register route
-router.post("/api/auth/register", async (req, res, next) => {
+router.post("/register", async (req, res, next) => {
   try {
-    const { email, password, username, isArtist, confirmPassword } = req.body;
+    console.log("Register request body:", req.body);
+    const { email, password, username } = req.body;
     if (!email || !password || !username) {
-      return res.status(400).json({ 
-        message: "Email, password, and username are required",
-        errors: {
-          email: !email ? "Email is required" : null,
-          password: !password ? "Password is required" : null,
-          username: !username ? "Username is required" : null
-        }
-      });
-    }
-
-    // Check if password and confirmPassword match
-    if (confirmPassword && password !== confirmPassword) {
-      return res.status(400).json({ 
-        message: "Passwords do not match",
-        errors: {
-          confirmPassword: "Passwords do not match"
-        }
-      });
+      return res.status(400).send("Email, password, and username are required");
     }
 
     // Check existing user
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(409).json({ 
-        message: "Email already exists",
-        errors: {
-          email: "Email already exists"
-        }
-      });
-    }
-
-    // Check existing username
-    const existingUsername = await User.findOne({ username });
-    if (existingUsername) {
-      return res.status(409).json({ 
-        message: "Username already exists",
-        errors: {
-          username: "Username already exists"
-        }
-      });
+      return res.status(409).send("Email already exists");
     }
 
     // Create new user
@@ -57,22 +25,15 @@ router.post("/api/auth/register", async (req, res, next) => {
       email,
       password,
       username,
-      isArtist: isArtist !== undefined ? isArtist : false,
+      isArtist: false,
     });
 
-    // Create user object without password
-    const userWithoutPassword = {
-      _id: user._id,
-      email: user.email,
-      username: user.username,
-      isArtist: user.isArtist,
-      createdAt: user.createdAt
-    };
-
-    // Generate JWT token with user data in a 'user' field
+    // Generate JWT token
     const token = jwt.sign(
       {
-        user: userWithoutPassword
+        id: user._id,
+        email: user.email,
+        username: user.username,
       },
       process.env.JWT_SECRET,
       { expiresIn: "24h" }
@@ -80,121 +41,96 @@ router.post("/api/auth/register", async (req, res, next) => {
 
     // Return user data and token
     res.status(201).json({
-      user: userWithoutPassword,
+      user: {
+        _id: user._id,
+        email: user.email,
+        username: user.username,
+        createdAt: user.createdAt,
+      },
       token,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ 
-      message: "Internal server error",
-      errors: {
-        error: "Internal server error"
-      }
-    });
+    console.error("Register error:", error);
+    res.status(500).send("Internal server error");
   }
 });
 
 // Login route
-router.post("/api/auth/login", async (req, res) => {
+router.post("/login", async (req, res) => {
   try {
-    const { identifier, password } = req.body;
+    console.log("Login request body:", req.body);
+    const { email, password } = req.body;
 
     // Validate input
-    if (!identifier || !password) {
+    if (!email || !password) {
+      console.log("Missing email or password");
       return res
         .status(400)
-        .json({ 
-          message: "Email/Username and password are required",
-          errors: {
-            identifier: !identifier ? "Email/Username is required" : null,
-            password: !password ? "Password is required" : null
-          }
-        });
+        .json({ message: "Email and password are required" });
     }
 
-    // Find user by email or username
-    const user = await User.findOne({
-      $or: [{ email: identifier }, { username: identifier }]
-    });
-    
+    // Find user by email
+    const user = await User.findOne({ email });
+    console.log("User found:", user ? "Yes" : "No");
+
     if (!user) {
-      return res.status(401).json({ 
-        message: "Invalid credentials",
-        errors: {
-          identifier: "Invalid credentials"
-        }
-      });
+      console.log("User not found");
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
     // Check password
+    console.log("Checking password...");
     const isPasswordValid = await user.comparePassword(password);
+    console.log("Password valid:", isPasswordValid);
+
     if (!isPasswordValid) {
-      return res.status(401).json({ 
-        message: "Invalid credentials",
-        errors: {
-          password: "Invalid credentials"
-        }
-      });
+      console.log("Invalid password");
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Create user object without password
-    const userWithoutPassword = {
-      _id: user._id,
-      email: user.email,
-      username: user.username,
-      isArtist: user.isArtist,
-      createdAt: user.createdAt
-    };
-
-    // Generate JWT token with user data in a 'user' field
+    // Generate JWT token
+    console.log("Generating token...");
     const token = jwt.sign(
       {
-        user: userWithoutPassword
+        id: user._id,
+        email: user.email,
+        username: user.username,
       },
       process.env.JWT_SECRET,
       { expiresIn: "24h" }
     );
 
+    console.log("Login successful");
     // Return user data and token
     res.status(200).json({
-      user: userWithoutPassword,
+      user: {
+        _id: user._id,
+        email: user.email,
+        username: user.username,
+        createdAt: user.createdAt,
+      },
       token,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ 
-      message: "Internal server error",
-      errors: {
-        error: "Internal server error"
-      }
-    });
+    console.error("Login error:", error);
+    res.status(500).send("Internal server error");
   }
 });
 
 // User profile route - protected route to get user data
-router.get("/api/auth/user/:id", async (req, res) => {
+router.get("/user/:id", async (req, res) => {
   try {
     const userId = req.params.id;
     const user = await User.findById(userId).select("-password");
 
     if (!user) {
-      return res.status(404).json({ 
-        message: "User not found",
-        errors: {
-          id: "User not found"
-        }
-      });
+      return res.status(404).json({ message: "User not found" });
     }
 
     res.status(200).json(user);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ 
-      message: "Internal server error",
-      errors: {
-        error: "Internal server error"
-      }
-    });
+    console.error("Get user error:", error);
+    res.status(500).send("Internal server error");
   }
 });
 

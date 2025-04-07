@@ -1,200 +1,159 @@
 import mongoose from "mongoose";
+import dotenv from "dotenv";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 import bcrypt from "bcryptjs";
-import "dotenv/config";
-import User from "./Models/User.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+dotenv.config();
+
+// Import models
 import Song from "./Models/Song.js";
-import Playlist from "./Models/Playlist.js";
+import User from "./Models/User.js";
 
-// MongoDB Connection
-mongoose
-  .connect(process.env.MONGODB_URI)
-  .then(() => console.log("Connected to MongoDB for seeding"))
-  .catch((err) => {
-    console.error("MongoDB connection error:", err);
-    process.exit(1);
-  });
+const sampleSongs = [
+  {
+    title: "Summer Vibes",
+    audio_url: "https://example.com/summer-vibes.mp3",
+    cover_Image:
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500&h=500&fit=crop",
+    duration: 180,
+    genre: "Pop",
+    releaseDate: new Date("2024-01-15"),
+  },
+  {
+    title: "Midnight Dreams",
+    audio_url: "https://example.com/midnight-dreams.mp3",
+    cover_Image:
+      "https://images.unsplash.com/photo-1519682337058-a94d519337bc?w=500&h=500&fit=crop",
+    duration: 240,
+    genre: "Electronic",
+    releaseDate: new Date("2024-02-01"),
+  },
+  {
+    title: "Ocean Waves",
+    audio_url: "https://example.com/ocean-waves.mp3",
+    cover_Image:
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500&h=500&fit=crop",
+    duration: 210,
+    genre: "Ambient",
+    releaseDate: new Date("2024-02-15"),
+  },
+  {
+    title: "City Lights",
+    audio_url: "https://example.com/city-lights.mp3",
+    cover_Image:
+      "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=500&h=500&fit=crop",
+    duration: 195,
+    genre: "Indie",
+    releaseDate: new Date("2024-03-01"),
+  },
+  {
+    title: "Mountain Air",
+    audio_url: "https://example.com/mountain-air.mp3",
+    cover_Image:
+      "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=500&h=500&fit=crop",
+    duration: 225,
+    genre: "Folk",
+    releaseDate: new Date("2024-03-15"),
+  },
+  {
+    title: "Desert Wind",
+    audio_url: "https://example.com/desert-wind.mp3",
+    cover_Image:
+      "https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=500&h=500&fit=crop",
+    duration: 200,
+    genre: "World",
+    releaseDate: new Date("2024-04-01"),
+  },
+  {
+    title: "Urban Jungle",
+    audio_url: "https://example.com/urban-jungle.mp3",
+    cover_Image:
+      "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=500&h=500&fit=crop",
+    duration: 215,
+    genre: "Hip Hop",
+    releaseDate: new Date("2024-04-15"),
+  },
+  {
+    title: "Forest Echo",
+    audio_url: "https://example.com/forest-echo.mp3",
+    cover_Image:
+      "https://images.unsplash.com/photo-1511497584788-876760111969?w=500&h=500&fit=crop",
+    duration: 230,
+    genre: "Acoustic",
+    releaseDate: new Date("2024-05-01"),
+  },
+  {
+    title: "Rainy Days",
+    audio_url: "https://example.com/rainy-days.mp3",
+    cover_Image:
+      "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=500&h=500&fit=crop",
+    duration: 190,
+    genre: "Jazz",
+    releaseDate: new Date("2024-05-15"),
+  },
+  {
+    title: "Sunset Drive",
+    audio_url: "https://example.com/sunset-drive.mp3",
+    cover_Image:
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=500&h=500&fit=crop",
+    duration: 205,
+    genre: "Rock",
+    releaseDate: new Date("2024-06-01"),
+  },
+];
 
-// Clear existing data
-const clearDatabase = async () => {
-  try {
-    await User.deleteMany({});
-    await Song.deleteMany({});
-    await Playlist.deleteMany({});
-    console.log("Database cleared successfully");
-  } catch (error) {
-    console.error("Error clearing database:", error);
-    process.exit(1);
-  }
-};
+const sampleUsers = [
+  {
+    username: "testuser",
+    email: "test@example.com",
+    password: "password123",
+    isArtist: false,
+  },
+  {
+    username: "artist1",
+    email: "artist1@example.com",
+    password: "password123",
+    isArtist: true,
+  },
+  {
+    username: "artist2",
+    email: "artist2@example.com",
+    password: "password123",
+    isArtist: true,
+  },
+];
 
-// Seed Users
-const seedUsers = async () => {
-  try {
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash("Password123!", salt);
-
-    const users = [
-      {
-        username: "regular_user",
-        email: "user@example.com",
-        password: hashedPassword,
-        profileImage: "https://i.pravatar.cc/150?img=3",
-        isArtist: false,
-        likedSongs: [],
-        playlists: [],
-      },
-      {
-        username: "artist_user",
-        email: "artist@example.com",
-        password: hashedPassword,
-        profileImage: "https://i.pravatar.cc/150?img=8",
-        isArtist: true,
-        likedSongs: [],
-        playlists: [],
-      },
-      {
-        username: "dj_beats",
-        email: "dj@example.com",
-        password: hashedPassword,
-        profileImage: "https://i.pravatar.cc/150?img=12",
-        isArtist: true,
-        likedSongs: [],
-        playlists: [],
-      },
-    ];
-
-    const createdUsers = await User.insertMany(users);
-    console.log(`${createdUsers.length} users created successfully`);
-    return createdUsers;
-  } catch (error) {
-    console.error("Error seeding users:", error);
-    process.exit(1);
-  }
-};
-
-// Seed Songs
-const seedSongs = async (users) => {
-  try {
-    const artistUser = users.find(user => user.isArtist);
-    const djUser = users.find(user => user.username === "dj_beats");
-    
-    const songs = [
-      {
-        title: "Summer Vibes",
-        user_id: artistUser._id,
-        duration: 210, // 3:30
-        audio_url: "https://example.com/audio/summer-vibes.mp3",
-        cover_Image: "https://picsum.photos/id/1019/300/300",
-      },
-      {
-        title: "Midnight Dreams",
-        user_id: artistUser._id,
-        duration: 195, // 3:15
-        audio_url: "https://example.com/audio/midnight-dreams.mp3",
-        cover_Image: "https://picsum.photos/id/1025/300/300",
-      },
-      {
-        title: "Urban Rhythm",
-        user_id: djUser._id,
-        duration: 240, // 4:00
-        audio_url: "https://example.com/audio/urban-rhythm.mp3",
-        cover_Image: "https://picsum.photos/id/1035/300/300",
-      },
-      {
-        title: "Electric Sunset",
-        user_id: djUser._id,
-        duration: 225, // 3:45
-        audio_url: "https://example.com/audio/electric-sunset.mp3",
-        cover_Image: "https://picsum.photos/id/1039/300/300",
-      },
-      {
-        title: "Chill Wave",
-        user_id: artistUser._id,
-        duration: 180, // 3:00
-        audio_url: "https://example.com/audio/chill-wave.mp3",
-        cover_Image: "https://picsum.photos/id/1042/300/300",
-      },
-    ];
-
-    const createdSongs = await Song.insertMany(songs);
-    console.log(`${createdSongs.length} songs created successfully`);
-    return createdSongs;
-  } catch (error) {
-    console.error("Error seeding songs:", error);
-    process.exit(1);
-  }
-};
-
-// Seed Playlists
-const seedPlaylists = async (users, songs) => {
-  try {
-    const regularUser = users.find(user => !user.isArtist);
-    const artistUser = users.find(user => user.isArtist && user.username !== "dj_beats");
-    
-    const playlists = [
-      {
-        name: "My Favorites",
-        songs: [songs[0]._id, songs[2]._id, songs[4]._id],
-      },
-      {
-        name: "Workout Mix",
-        songs: [songs[1]._id, songs[3]._id],
-      },
-      {
-        name: "Relaxing Tunes",
-        songs: [songs[0]._id, songs[4]._id],
-      },
-    ];
-
-    const createdPlaylists = await Playlist.insertMany(playlists);
-    
-    // Add playlists to users
-    await User.findByIdAndUpdate(regularUser._id, {
-      $push: { playlists: [createdPlaylists[0]._id, createdPlaylists[1]._id] }
-    });
-    
-    await User.findByIdAndUpdate(artistUser._id, {
-      $push: { playlists: createdPlaylists[2]._id }
-    });
-    
-    console.log(`${createdPlaylists.length} playlists created successfully`);
-    return createdPlaylists;
-  } catch (error) {
-    console.error("Error seeding playlists:", error);
-    process.exit(1);
-  }
-};
-
-// Add liked songs to users
-const addLikedSongs = async (users, songs) => {
-  try {
-    const regularUser = users.find(user => !user.isArtist);
-    const artistUser = users.find(user => user.isArtist && user.username !== "dj_beats");
-    
-    await User.findByIdAndUpdate(regularUser._id, {
-      $push: { likedSongs: [songs[0]._id, songs[2]._id, songs[4]._id] }
-    });
-    
-    await User.findByIdAndUpdate(artistUser._id, {
-      $push: { likedSongs: [songs[1]._id, songs[3]._id] }
-    });
-    
-    console.log("Liked songs added to users successfully");
-  } catch (error) {
-    console.error("Error adding liked songs:", error);
-    process.exit(1);
-  }
-};
-
-// Run the seeding process
 const seedDatabase = async () => {
   try {
-    await clearDatabase();
-    const users = await seedUsers();
-    const songs = await seedSongs(users);
-    const playlists = await seedPlaylists(users, songs);
-    await addLikedSongs(users, songs);
-    
+    // Connect to MongoDB
+    await mongoose.connect(process.env.MONGODB_URI);
+    console.log("Connected to MongoDB");
+
+    // Clear existing data
+    await Song.deleteMany({});
+    await User.deleteMany({});
+    console.log("Cleared existing data");
+
+    // Hash passwords for users
+    const hashedUsers = await Promise.all(
+      sampleUsers.map(async (user) => ({
+        ...user,
+        password: await bcrypt.hash(user.password, 10),
+      }))
+    );
+
+    // Insert sample songs
+    const songs = await Song.insertMany(sampleSongs);
+    console.log("Inserted sample songs");
+
+    // Insert sample users
+    const users = await User.insertMany(hashedUsers);
+    console.log("Inserted sample users");
+
     console.log("Database seeded successfully!");
     process.exit(0);
   } catch (error) {

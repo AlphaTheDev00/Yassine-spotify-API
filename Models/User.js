@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import bcrypt from "bcryptjs";
+import bcryptjs from "bcryptjs";
 
 const userSchema = new mongoose.Schema({
   username: {
@@ -50,8 +50,10 @@ userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
 
   try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
+    // Use a consistent salt rounds value
+    const SALT_ROUNDS = 10;
+    const salt = await bcryptjs.genSalt(SALT_ROUNDS);
+    this.password = await bcryptjs.hash(this.password, salt);
     next();
   } catch (error) {
     next(error);
@@ -61,8 +63,16 @@ userSchema.pre("save", async function (next) {
 // Method to compare passwords for login
 userSchema.methods.comparePassword = async function (candidatePassword) {
   try {
-    return await bcrypt.compare(candidatePassword, this.password);
+    // Add logging for debugging
+    console.log("Comparing passwords...");
+    console.log("Candidate password:", candidatePassword);
+    console.log("Stored password hash:", this.password);
+
+    const isMatch = await bcryptjs.compare(candidatePassword, this.password);
+    console.log("Password match:", isMatch);
+    return isMatch;
   } catch (error) {
+    console.error("Error comparing passwords:", error);
     throw error;
   }
 };
