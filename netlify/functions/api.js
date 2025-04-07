@@ -389,6 +389,85 @@ app.get("/.netlify/functions/api/seed", async (req, res) => {
   }
 });
 
+// Liked songs endpoints
+app.get("/.netlify/functions/api/users/liked-songs", async (req, res) => {
+  console.log("Get liked songs endpoint hit");
+  try {
+    // For development purposes, return mock liked songs
+    res.json({
+      success: true,
+      data: {
+        songs: [
+          {
+            _id: "mock-song-1",
+            title: "Liked Song 1",
+            artist: "Artist 1",
+            album: "Album 1",
+            coverImage: "https://via.placeholder.com/300",
+            audioUrl: "https://example.com/song1.mp3",
+          },
+          {
+            _id: "mock-song-2",
+            title: "Liked Song 2",
+            artist: "Artist 2",
+            album: "Album 2",
+            coverImage: "https://via.placeholder.com/300",
+            audioUrl: "https://example.com/song2.mp3",
+          }
+        ]
+      },
+      message: "Liked songs retrieved successfully"
+    });
+  } catch (error) {
+    console.error("Error fetching liked songs:", error);
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: error.message
+    });
+  }
+});
+
+app.post("/.netlify/functions/api/users/liked-songs", async (req, res) => {
+  console.log("Add to liked songs endpoint hit with data:", req.body);
+  try {
+    // For development purposes, return success response
+    res.json({
+      success: true,
+      data: {
+        message: "Song added to liked songs successfully"
+      }
+    });
+  } catch (error) {
+    console.error("Error adding to liked songs:", error);
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: error.message
+    });
+  }
+});
+
+app.delete("/.netlify/functions/api/users/liked-songs/:songId", async (req, res) => {
+  console.log("Remove from liked songs endpoint hit with songId:", req.params.songId);
+  try {
+    // For development purposes, return success response
+    res.json({
+      success: true,
+      data: {
+        message: "Song removed from liked songs successfully"
+      }
+    });
+  } catch (error) {
+    console.error("Error removing from liked songs:", error);
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: error.message
+    });
+  }
+});
+
 // Get songs by user ID endpoint with Netlify path
 app.get("/.netlify/functions/api/songs/user/:userId", async (req, res) => {
   console.log("Get songs by user ID endpoint hit with userId:", req.params.userId);
