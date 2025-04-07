@@ -11,13 +11,17 @@ router.post("/register", async (req, res, next) => {
     console.log("Register request body:", req.body);
     const { email, password, username } = req.body;
     if (!email || !password || !username) {
-      return res.status(400).send("Email, password, and username are required");
+      return res.status(400).json({
+        error: "Email, password, and username are required",
+      });
     }
 
     // Check existing user
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(409).send("Email already exists");
+      return res.status(409).json({
+        error: "Email already exists",
+      });
     }
 
     // Create new user
@@ -39,7 +43,7 @@ router.post("/register", async (req, res, next) => {
       { expiresIn: "24h" }
     );
 
-    // Return user data and token
+    // Return user data and token in the expected format
     res.status(201).json({
       user: {
         _id: user._id,
@@ -48,48 +52,45 @@ router.post("/register", async (req, res, next) => {
         createdAt: user.createdAt,
       },
       token,
+      message: "User registered successfully",
     });
   } catch (error) {
     console.error("Register error:", error);
-    res.status(500).send("Internal server error");
+    res.status(500).json({
+      error: "Internal server error",
+      message: error.message,
+    });
   }
 });
 
 // Login route
-router.post("/login", async (req, res) => {
+router.post("/login", async (req, res, next) => {
   try {
     console.log("Login request body:", req.body);
     const { email, password } = req.body;
-
-    // Validate input
     if (!email || !password) {
-      console.log("Missing email or password");
-      return res
-        .status(400)
-        .json({ message: "Email and password are required" });
+      return res.status(400).json({
+        error: "Email and password are required",
+      });
     }
 
     // Find user by email
     const user = await User.findOne({ email });
-    console.log("User found:", user ? "Yes" : "No");
-
     if (!user) {
-      console.log("User not found");
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res.status(401).json({
+        error: "Invalid credentials",
+      });
     }
 
     // Check password
-    console.log("Checking password...");
-    const isPasswordValid = await user.comparePassword(password);
-    console.log("Password valid:", isPasswordValid);
-
-    if (!isPasswordValid) {
-      console.log("Invalid password");
-      return res.status(401).json({ message: "Invalid credentials" });
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      return res.status(401).json({
+        error: "Invalid credentials",
+      });
     }
 
     // Generate JWT token
-    console.log("Generating token...");
     const token = jwt.sign(
       {
         id: user._id,
@@ -100,9 +101,8 @@ router.post("/login", async (req, res) => {
       { expiresIn: "24h" }
     );
 
-    console.log("Login successful");
-    // Return user data and token
-    res.status(200).json({
+    // Return user data and token in the expected format
+    res.json({
       user: {
         _id: user._id,
         email: user.email,
@@ -110,10 +110,14 @@ router.post("/login", async (req, res) => {
         createdAt: user.createdAt,
       },
       token,
+      message: "Login successful",
     });
   } catch (error) {
     console.error("Login error:", error);
-    res.status(500).send("Internal server error");
+    res.status(500).json({
+      error: "Internal server error",
+      message: error.message,
+    });
   }
 });
 
