@@ -479,7 +479,7 @@ Designing a comprehensive API for a music streaming application improved my skil
 ## 📱 Connect With Me
 
 - [GitHub](https://github.com/AlphaTheDev00)
-- [LinkedIn](https://linkedin.com/in/yassine-dev)
+- [LinkedIn](https://www.linkedin.com/in/yassinechikar/)
 - [Portfolio](https://yassine-dev.com)
 
 ---
