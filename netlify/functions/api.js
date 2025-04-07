@@ -247,7 +247,7 @@ const handler = async (event, context) => {
           statusCode: 500,
           headers: {
             "Access-Control-Allow-Origin":
-              "https://musicfy-clone-client.netlify.app",
+              event.headers.origin || "https://musicfy-clone.netlify.app",
             "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
             "Access-Control-Allow-Headers": "Content-Type, Authorization",
             "Access-Control-Allow-Credentials": "true",
@@ -271,7 +271,7 @@ const handler = async (event, context) => {
       statusCode: 204,
       headers: {
         "Access-Control-Allow-Origin":
-          "https://musicfy-clone-client.netlify.app",
+          event.headers.origin || "https://musicfy-clone.netlify.app",
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization",
         "Access-Control-Allow-Credentials": "true",
@@ -290,19 +290,19 @@ const handler = async (event, context) => {
       headers: {
         ...result.headers,
         "Access-Control-Allow-Origin":
-          "https://musicfy-clone-client.netlify.app",
+          event.headers.origin || "https://musicfy-clone-client.netlify.app",
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization",
         "Access-Control-Allow-Credentials": "true",
       },
     };
   } catch (error) {
-    console.error("Handler error:", error);
+    console.error("Error handling request:", error);
     return {
       statusCode: 500,
       headers: {
         "Access-Control-Allow-Origin":
-          "https://musicfy-clone-client.netlify.app",
+          event.headers.origin || "https://musicfy-clone-client.netlify.app",
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization",
         "Access-Control-Allow-Credentials": "true",
@@ -310,7 +310,7 @@ const handler = async (event, context) => {
       },
       body: JSON.stringify({
         data: null,
-        message: "Internal server error",
+        message: error.message,
       }),
     };
   }
