@@ -32,25 +32,26 @@ router.post("/register", async (req, res, next) => {
       isArtist: false,
     });
 
-    // Generate JWT token
+    // Prepare user data for token
+    const userData = {
+      _id: user._id,
+      email: user.email,
+      username: user.username,
+      createdAt: user.createdAt,
+    };
+
+    // Generate JWT token with user data
     const token = jwt.sign(
       {
-        id: user._id,
-        email: user.email,
-        username: user.username,
+        user: userData,
+        exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60, // 24 hours
       },
-      process.env.JWT_SECRET,
-      { expiresIn: "24h" }
+      process.env.JWT_SECRET
     );
 
-    // Return user data and token in the expected format
+    // Return user data and token
     res.status(201).json({
-      user: {
-        _id: user._id,
-        email: user.email,
-        username: user.username,
-        createdAt: user.createdAt,
-      },
+      user: userData,
       token,
       message: "User registered successfully",
     });
@@ -90,25 +91,26 @@ router.post("/login", async (req, res, next) => {
       });
     }
 
-    // Generate JWT token
+    // Prepare user data for token
+    const userData = {
+      _id: user._id,
+      email: user.email,
+      username: user.username,
+      createdAt: user.createdAt,
+    };
+
+    // Generate JWT token with user data
     const token = jwt.sign(
       {
-        id: user._id,
-        email: user.email,
-        username: user.username,
+        user: userData,
+        exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60, // 24 hours
       },
-      process.env.JWT_SECRET,
-      { expiresIn: "24h" }
+      process.env.JWT_SECRET
     );
 
-    // Return user data and token in the expected format
+    // Return user data and token
     res.json({
-      user: {
-        _id: user._id,
-        email: user.email,
-        username: user.username,
-        createdAt: user.createdAt,
-      },
+      user: userData,
       token,
       message: "Login successful",
     });
