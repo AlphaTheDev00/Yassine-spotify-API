@@ -13,6 +13,7 @@ const app = express();
 // CORS configuration
 const corsOptions = {
   origin: [
+    "https://musicfy-clone.netlify.app",
     "https://musicfy-clone-client.netlify.app",
     "http://localhost:5173",
     "http://localhost:3000",
@@ -49,9 +50,32 @@ app.get("/test", (req, res) => {
   res.json({ data: { message: "API is working correctly" } });
 });
 
+// Test endpoint with Netlify path
+app.get("/.netlify/functions/api/test", (req, res) => {
+  console.log("Test endpoint hit with Netlify path");
+  res.json({ data: { message: "API is working correctly" } });
+});
+
 // Songs endpoint
 app.get("/songs", async (req, res) => {
   console.log("Songs endpoint hit");
+  try {
+    // Get all songs from MongoDB
+    const songs = await Song.find()
+      .populate("user_id", "username profileImage")
+      .sort({ createdAt: -1 });
+
+    console.log(`Found ${songs.length} songs`);
+    res.json({ data: songs });
+  } catch (error) {
+    console.error("Error fetching songs:", error);
+    res.status(500).json({ data: null, message: error.message });
+  }
+});
+
+// Songs endpoint with Netlify path
+app.get("/.netlify/functions/api/songs", async (req, res) => {
+  console.log("Songs endpoint hit with Netlify path");
   try {
     // Get all songs from MongoDB
     const songs = await Song.find()
@@ -92,6 +116,54 @@ app.post("/auth/register", async (req, res) => {
 });
 
 app.post("/auth/login", async (req, res) => {
+  console.log("Login endpoint hit with credentials:", req.body);
+  try {
+    // Here you'd normally validate credentials against the database
+    // For testing purposes, we'll just return a success response with a test token
+    res.json({
+      data: {
+        user: {
+          username: req.body.email.split("@")[0],
+          email: req.body.email,
+        },
+        token: "test_token_for_development",
+      },
+      message: "Login successful",
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(401).json({
+      data: null,
+      message: "Invalid credentials",
+    });
+  }
+});
+
+app.post("/.netlify/functions/api/auth/register", async (req, res) => {
+  console.log("Register endpoint hit with data:", req.body);
+  try {
+    // Here you'd normally create a user in the database
+    // For testing purposes, we'll just return a success response
+    res.status(201).json({
+      data: {
+        user: {
+          username: req.body.username,
+          email: req.body.email,
+          // Don't send back the password!
+        },
+      },
+      message: "User registered successfully",
+    });
+  } catch (error) {
+    console.error("Registration error:", error);
+    res.status(500).json({
+      data: null,
+      message: error.message,
+    });
+  }
+});
+
+app.post("/.netlify/functions/api/auth/login", async (req, res) => {
   console.log("Login endpoint hit with credentials:", req.body);
   try {
     // Here you'd normally validate credentials against the database
