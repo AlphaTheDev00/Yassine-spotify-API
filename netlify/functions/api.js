@@ -537,7 +537,7 @@ app.post("/auth/register", async (req, res) => {
   console.log("Register endpoint hit with data:", req.body);
   try {
     // Here you'd normally create a user in the database
-    // For testing purposes, we'll just return a success response
+    // For testing purposes, we'll just return a success response with a token
     res.status(201).json({
       data: {
         user: {
@@ -545,6 +545,7 @@ app.post("/auth/register", async (req, res) => {
           email: req.body.email,
           // Don't send back the password!
         },
+        token: "test_token_for_development",
       },
       message: "User registered successfully",
     });
@@ -585,7 +586,7 @@ app.post("/.netlify/functions/api/auth/register", async (req, res) => {
   console.log("Register endpoint hit with data:", req.body);
   try {
     // Here you'd normally create a user in the database
-    // For testing purposes, we'll just return a success response
+    // For testing purposes, we'll just return a success response with a token
     res.status(201).json({
       data: {
         user: {
@@ -593,6 +594,7 @@ app.post("/.netlify/functions/api/auth/register", async (req, res) => {
           email: req.body.email,
           // Don't send back the password!
         },
+        token: "test_token_for_development",
       },
       message: "User registered successfully",
     });
